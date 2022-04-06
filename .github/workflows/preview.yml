@@ -1,13 +1,15 @@
-name: Netlify Preview
+name: Deploy Preview to Netlify
+
 on:
   push:
     branches-ignore: ['main', 'master']
+  workflow_dispatch:
+
 jobs:
-  build:
+  deploy-preview:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
-
 
       - name: Install modules
         run: yarn
@@ -19,7 +21,7 @@ jobs:
         uses: nwtgck/actions-netlify@v1.2
         with:
           publish-dir: './build'
-          deploy-message: "Preview deployed from GitHub Actions"
+          deploy-message: ${{ github.event.pull_request.title }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
