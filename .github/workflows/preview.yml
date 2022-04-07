@@ -1,6 +1,11 @@
 name: Deploy Preview to Netlify
 
-on: [pull_request, workflow_dispatch]
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Deploy Message (visible in Netlify)'
 
 jobs:
   deploy-preview:
@@ -14,11 +19,20 @@ jobs:
       - name: Build
         run: yarn build
 
+      - name: Set Deploy message for a Pull Request event
+        run: echo "DEPLOY_MSG='#${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}'" >> $GITHUB_ENV
+        if: "${{ github.event.pull_request.title != '' }}"
+
+      - name: Set Deploy message for a Workflow Dispatch
+        run: echo "DEPLOY_MSG='Manual Trigger - ${{ github.event.inputs.tags.description }}'" >> $GITHUB_ENV
+        if: "${{ github.event.inputs.tags.description != '' }}"
+
+
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v1.2
         with:
           publish-dir: './build'
-          deploy-message: '#${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}'
+          deploy-message: ${{env.DOCKER_IMAGE_NAME}}
           github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
